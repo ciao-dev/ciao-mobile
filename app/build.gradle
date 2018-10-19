@@ -2,8 +2,8 @@ apply plugin: 'com.android.model.application'
 
 model {
     android {
-        compileSdkVersion = 25
-        buildToolsVersion = "26.0.0"
+        compileSdkVersion = 26
+        buildToolsVersion = "26.0.2"
 
         defaultConfig {
             applicationId = "com.isthatfreeproxysafe.ciao"
@@ -56,25 +56,25 @@ model {
 
         productFlavors {
             create("all") {
-                versionName = "1.0"
+                versionName = "1.0.1"
                 minSdkVersion.apiLevel = 14
-                targetSdkVersion.apiLevel = 25
-                versionCode = 2017090401
+                targetSdkVersion.apiLevel = 26
+                versionCode = 2018101701
                 archivesBaseName = "Ciao-v$versionName"
             }
             create("lollipop-and-later") {
-                versionName = "1.0"
+                versionName = "1.0.1"
                 minSdkVersion.apiLevel = 20
-                targetSdkVersion.apiLevel = 25
-                versionCode = 2017090411
+                targetSdkVersion.apiLevel = 26
+                versionCode = 2018101711
                 archivesBaseName = "Ciao-v$versionName"
             }
             create("kitkat-and-earlier") {
-                versionName = "1.0"
+                versionName = "1.0.1"
                 minSdkVersion.apiLevel = 14
                 maxSdkVersion = 19
-                targetSdkVersion.apiLevel = 25
-                versionCode = 2017090421
+                targetSdkVersion.apiLevel = 26
+                versionCode = 2018101721
                 archivesBaseName = "Ciao-v$versionName"
             }
         }
@@ -83,6 +83,6 @@ model {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.+'
-    compile 'com.android.support:support-annotations:25.+'
+    compile 'com.android.support:appcompat-v7:26.0.0'
+    compile 'com.android.support:support-annotations:26.0.0'
 }

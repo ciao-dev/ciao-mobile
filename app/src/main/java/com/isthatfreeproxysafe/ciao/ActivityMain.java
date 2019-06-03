@@ -35,6 +35,8 @@ import android.preference.PreferenceManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Log;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -51,19 +53,23 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.SocketChannel;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -88,6 +94,8 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
     private TextView proxyListText;
     private Button proxyApplySetting;
     private CheckBox manualProxyInsert;
+    private String hosts_url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts";
+
 
     private AlertDialog dialogDoze = null;
 
@@ -339,14 +347,7 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
                         } else {
                             startActivityForResult(prepare, REQUEST_VPN);
                         }
-
-
-                        ProxyUtil.generateSessionId();
-                        new FetchProxyCountryList().execute();
-                        new FetchProxyList(new ProxySetting(getApplicationContext())).execute();
-                        // Reset spinners
-                        proxyCountryList.setSelection(0);
-                        proxySetting.setSelection(0);
+                        enableProxy();
                     } catch (Throwable ex) {
                         // Prepare failed
                         Log.e(TAG, ex.toString() + "\n" + Log.getStackTraceString(ex));
@@ -354,20 +355,8 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
                     }
 
                 } else {
+                    disableProxy();
                     ServiceSinkhole.stop("switch off", ActivityMain.this);
-                    Intent in = new Intent();
-                    in.setAction(ACTION_PROXY_LIST_CHANGED);
-                    in.putParcelableArrayListExtra("ProxyList", new ArrayList<ProxyServerInfo>());
-                    sendBroadcast(in);
-
-                    proxyCountryList.setVisibility(View.GONE);
-                    proxySetting.setVisibility(View.GONE);
-                    proxyListText.setVisibility(View.GONE);
-                    manualProxyInsert.setVisibility(View.GONE);
-                    proxyApplySetting.setVisibility(View.GONE);
-
-                    // Need this so that the next time it is switched on, it queries the new list.
-                    current_proxy_setting = null;
                 }
             }
         });
@@ -380,16 +369,98 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
         tvDisabled.setVisibility(enabled ? View.GONE : View.VISIBLE);
 
         // Re-fetch country info if VPN is already enabled
-        if(enabled) {
-            ProxyUtil.generateSessionId();
-            new FetchProxyCountryList().execute();
-            new FetchProxyList(new ProxySetting(getApplicationContext())).execute(); // By default..
-        }
+        enableProxy();
 
         // Listen for preference changes
         prefs.registerOnSharedPreferenceChangeListener(this);
 
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.settings, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        MenuItem block_hosts_item = menu.findItem(R.id.block_hosts);
+        MenuItem pref_hosts_download = menu.findItem(R.id.pref_hosts_download);
+        MenuItem use_proxy = menu.findItem(R.id.use_proxy);
+        block_hosts_item.setEnabled(true);
+        block_hosts_item.setChecked(prefs.getBoolean("block_hosts", false));
+        use_proxy.setEnabled(true);
+        use_proxy.setChecked(prefs.getBoolean("use_proxy", false));
+        pref_hosts_download.setEnabled(true);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        switch (item.getItemId()) {
+            case R.id.use_proxy:
+                item.setChecked(!item.isChecked());
+                prefs.edit().putBoolean("use_proxy", item.isChecked()).apply();
+                if(swEnabled.isChecked() && item.isChecked()) {
+                    enableProxy();
+                } else if (!item.isChecked()) {
+                    disableProxy();
+                }
+                return true;
+            case R.id.block_hosts:
+                item.setChecked(!item.isChecked());
+                prefs.edit().putBoolean("block_hosts", item.isChecked()).apply();
+                ServiceSinkhole.reload("change block hosts: "+item.isChecked(), ActivityMain.this);
+                return true;
+            case R.id.pref_hosts_download:
+                final File tmp = new File(getFilesDir(), "hosts.tmp");
+                final File hosts = new File(getFilesDir(), "hosts.txt");
+                //EditTextPreference pref_hosts_url = (EditTextPreference) screen.findPreference("hosts_url");
+                try {
+                    new DownloadTask(ActivityMain.this, new URL(hosts_url), tmp, new DownloadTask.Listener() {
+                        @Override
+                        public void onCompleted() {
+                            if (hosts.exists())
+                                hosts.delete();
+                            tmp.renameTo(hosts);
+
+                            String last = SimpleDateFormat.getDateTimeInstance().format(new Date().getTime());
+                            //prefs.edit().putString("hosts_last_download", last).apply();
+
+                            //if (running) {
+                            //    pref_hosts_download.setSummary(getString(R.string.msg_download_last, last));
+                            //    Toast.makeText(ActivitySettings.this, R.string.msg_downloaded, Toast.LENGTH_LONG).show();
+                            //}
+
+                            ServiceSinkhole.reload("hosts file download", ActivityMain.this);
+                        }
+
+                        @Override
+                        public void onCancelled() {
+                            if (tmp.exists())
+                                tmp.delete();
+                        }
+
+                        @Override
+                        public void onException(Throwable ex) {
+                            if (tmp.exists())
+                                tmp.delete();
+
+                            //if (running)
+                            //    Toast.makeText(ActivitySettings.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } catch (MalformedURLException ex) {
+                    Toast.makeText(ActivityMain.this, ex.toString(), Toast.LENGTH_LONG).show();
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
 
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -494,6 +565,42 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
 
         }
     }
+
+    // Only enable proxy when the app is running, it restarts ServiceSinkhole
+    private void enableProxy() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean useProxy = prefs.getBoolean("use_proxy", false);
+        boolean vpn_enabled = prefs.getBoolean("enabled", false);
+        if(vpn_enabled && useProxy) {
+            Log.d(TAG, "Fetching proxy: "+vpn_enabled+" : "+useProxy);
+            ProxyUtil.generateSessionId();
+            new FetchProxyCountryList().execute();
+            new FetchProxyList(new ProxySetting(getApplicationContext())).execute(); // By default..
+            // Reset spinners
+            proxyCountryList.setSelection(0);
+            proxySetting.setSelection(0);
+            ServiceSinkhole.reload("Update Proxy: "+useProxy, ActivityMain.this);
+        }
+
+    }
+
+    // Disable proxy does not (and should not) stop ServiceSinkhole
+    private void disableProxy() {
+        Intent in = new Intent();
+        in.setAction(ACTION_PROXY_LIST_CHANGED);
+        in.putParcelableArrayListExtra("ProxyList", new ArrayList<ProxyServerInfo>());
+        sendBroadcast(in);
+
+        proxyCountryList.setVisibility(View.GONE);
+        proxySetting.setVisibility(View.GONE);
+        proxyListText.setVisibility(View.GONE);
+        manualProxyInsert.setVisibility(View.GONE);
+        proxyApplySetting.setVisibility(View.GONE);
+
+        // Need this so that the next time it is switched on, it queries the new list.
+        current_proxy_setting = null;
+    }
+
     public static int MAX_URL_FETCH_RETRIES = 3;
     public static int URL_FETCH_TIMEOUT = 5000; // 5 secs
 

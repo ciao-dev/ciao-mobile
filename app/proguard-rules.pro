@@ -47,9 +47,10 @@
     void proxyUsage(com.isthatfreeproxysafe.ciao.ProxyUsage);
 }
 
-#Support library
--keep class android.support.v7.widget.** { *; }
--dontwarn android.support.v4.**
+#AndroidX
+-keep class androidx.appcompat.widget.** { *; }
+-keep class androidx.appcompat.app.AppCompatViewInflater { <init>(...); }
+-keepclassmembers class * implements android.os.Parcelable { static ** CREATOR; }
 
 #Picasso
 #-dontwarn com.squareup.okhttp.**

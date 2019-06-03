@@ -9,14 +9,6 @@
 
     <uses-permission android:name="com.isthatfreeproxysafe.ciao.permission.ADMIN" />
 
-    <!-- Firebase -->
-    <uses-permission
-        android:name="com.google.android.c2dm.permission.RECEIVE"
-        tools:node="remove" />
-    <uses-permission
-        android:name="com.isthatfreeproxysafe.ciao.permission.C2D_MESSAGE"
-        tools:node="remove" />
-
     <uses-feature
         android:name="android.hardware.wifi"
         android:required="false" />

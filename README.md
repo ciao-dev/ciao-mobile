@@ -19,6 +19,12 @@ Note that data collection is disabled when Ciao is not enabled. We also  do not 
 
 Ciao requires no root access. Ciao leverages part of the open-source [NetGuard](https://www.netguard.me). Ciao is also available as a [Chrome plugin](https://chrome.google.com/webstore/detail/automated-free-proxies-di/ojjklffhhhfpeaelghfocilljceokage).
 
+# Working Setup 
+The last version of the code can be correctly compiled on Android Studio 3.3.1
+
+Older version of the code have the following requirements: Android Studio 2.3.x and NDK r15 [on mac, android-ndk-r15c-darwin-x86_64.zip - https://developer.android.com/ndk/downloads/revision_history.html] -- This is needed because r16 moved some header files around into a unified structure and thus broke any user expecting headers in the old locations. To downgrade the NDK, in Android Studio go to File -> Project Structure -> SDK Location -> Android NDK location and point to the folder where you have unzipped the above file after download.
+
+
 
 License
 -------

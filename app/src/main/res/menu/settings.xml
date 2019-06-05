@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/use_proxy"
+        android:title="@string/use_proxy"
+        android:checkable="true"/>
+    <item android:id="@+id/block_hosts"
+        android:title="@string/block_hosts"
+        android:checkable="true"/>
+    <item android:id="@+id/pref_hosts_download"
+        android:title="@string/pref_hosts_download"
+        android:checkable="false"/>
+
+</menu>

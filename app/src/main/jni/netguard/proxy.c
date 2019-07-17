@@ -78,17 +78,25 @@ void proxy_usage(const struct arguments *args, jint protocol,
     (*args->env)->SetLongField(args->env, jpusage, fidProxyUsageReceived, received);
 
     jstring jhttpaddr;
-    if(!http_proxy->masked) {
+    if(http_proxy != NULL && !http_proxy->masked) {
         jhttpaddr = (*args->env)->NewStringUTF(args->env, http_proxy->raddr);
         (*args->env)->SetObjectField(args->env, jpusage, fidProxyUsageHttpProxyAddr, jhttpaddr);
         (*args->env)->SetIntField(args->env, jpusage, fidProxyUsageHttpProxyPort,
                                   http_proxy->rport);
+    } else if(http_proxy == NULL) {
+        jhttpaddr = (*args->env)->NewStringUTF(args->env, "null");
+        (*args->env)->SetObjectField(args->env, jpusage, fidProxyUsageHttpProxyAddr, jhttpaddr);
+        (*args->env)->SetIntField(args->env, jpusage, fidProxyUsageHttpProxyPort, 0);
     }
     jstring jhttpsaddr;
-    if(!https_proxy->masked) {
+    if(https_proxy != NULL && !https_proxy->masked) {
         jhttpsaddr = (*args->env)->NewStringUTF(args->env, https_proxy->raddr);
         (*args->env)->SetObjectField(args->env, jpusage, fidProxyUsageHttpsProxyAddr, jhttpsaddr);
         (*args->env)->SetIntField(args->env, jpusage, fidProxyUsageHttpsProxyPort, https_proxy->rport);
+    } else if(https_proxy == NULL) {
+        jhttpsaddr = (*args->env)->NewStringUTF(args->env, "null");
+        (*args->env)->SetObjectField(args->env, jpusage, fidProxyUsageHttpsProxyAddr, jhttpsaddr);
+        (*args->env)->SetIntField(args->env, jpusage, fidProxyUsageHttpsProxyPort, 0);
     }
 
     (*args->env)->CallVoidMethod(args->env, args->instance, midProxyUsage, jpusage);
@@ -97,8 +105,8 @@ void proxy_usage(const struct arguments *args, jint protocol,
     (*args->env)->DeleteLocalRef(args->env, jdaddr);
     (*args->env)->DeleteLocalRef(args->env, jpusage);
     (*args->env)->DeleteLocalRef(args->env, clsService);
-    if(!https_proxy->masked)( *args->env)->DeleteLocalRef(args->env, jhttpsaddr);
-    if(!http_proxy->masked) (*args->env)->DeleteLocalRef(args->env, jhttpaddr);
+    if(https_proxy == NULL || !https_proxy->masked)( *args->env)->DeleteLocalRef(args->env, jhttpsaddr);
+    if(http_proxy == NULL || !http_proxy->masked) (*args->env)->DeleteLocalRef(args->env, jhttpaddr);
 
 #ifdef PROFILE_JNI
     gettimeofday(&end, NULL);

@@ -117,6 +117,10 @@ int check_tcp_session(const struct arguments *args, struct ng_session *s,
             proxy_usage(args, is_http_port(dest_port) ? 1 : is_https_port(dest_port) ? 2 : 3,
                         dest, dest_port, s->tcp.uid, s->tcp.sent, s->tcp.received, s->tcp.start_time, s->tcp.last_recv_time,
             s->tcp.http_proxy, s->tcp.https_proxy);
+        } else {
+            proxy_usage(args, is_http_port(dest_port) ? 1 : is_https_port(dest_port) ? 2 : 3,
+                        dest, dest_port, s->tcp.uid, s->tcp.sent, s->tcp.received, s->tcp.start_time, s->tcp.last_recv_time,
+                        NULL, NULL);
         }
 
         s->tcp.sent = 0;

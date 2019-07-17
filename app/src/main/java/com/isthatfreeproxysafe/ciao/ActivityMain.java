@@ -347,6 +347,8 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
                         } else {
                             startActivityForResult(prepare, REQUEST_VPN);
                         }
+                        ProxyUtil.generateSessionId();
+                        ProxyUtil.generateEnableId();
                         enableProxy();
                     } catch (Throwable ex) {
                         // Prepare failed
@@ -401,6 +403,7 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         switch (item.getItemId()) {
             case R.id.use_proxy:
+                ProxyUtil.generateSessionId();
                 item.setChecked(!item.isChecked());
                 prefs.edit().putBoolean("use_proxy", item.isChecked()).apply();
                 if(swEnabled.isChecked() && item.isChecked()) {
@@ -410,6 +413,7 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
                 }
                 return true;
             case R.id.block_hosts:
+                ProxyUtil.generateSessionId();
                 item.setChecked(!item.isChecked());
                 prefs.edit().putBoolean("block_hosts", item.isChecked()).apply();
                 ServiceSinkhole.reload("change block hosts: "+item.isChecked(), ActivityMain.this);
@@ -644,8 +648,8 @@ public class ActivityMain extends AppCompatActivity implements SharedPreferences
         @Override
         protected List<ProxyServerInfo> doInBackground(Void... v) {
 
-            // Generate new enabled_id
-            ProxyUtil.generateEnableId();
+            // Generate new session
+            ProxyUtil.generateSessionId();
 
             String urlString = ProxyWebAPI.HTTPS_QUERY_URL +"?strategy=6";
             if (query != null && !query.isEmpty()) {

@@ -25,7 +25,7 @@ public class ProxyUtil {
 
     private static long enableId = -1;
     public static void generateEnableId() {
-        enableId = new Random(System.currentTimeMillis()).nextLong();
+        enableId = new Random(System.currentTimeMillis()*2).nextLong();
         Log.d(TAG, "Current enabled id: "+enableId);
     }
     public static long getEnableId() { return enableId; }

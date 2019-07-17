@@ -1,6 +1,8 @@
 package com.isthatfreeproxysafe.ciao;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import org.json.simple.JSONObject;
 
@@ -39,6 +41,10 @@ public class ProxyUsage {
 
         json.put("MainProxy", HttpProxyAddr+":"+HttpProxyPort);
         json.put("MainHttpsProxy", HttpsProxyAddr+":"+HttpsProxyPort);
+
+        // Ads blocking
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        json.put("Adsblock", pref.getBoolean("block_hosts", false));
         /*DatabaseHelper dh = DatabaseHelper.getInstance(context);
         String dname = dh.getQName(Uid, DAddr);
         json.put("DName", dname);*/

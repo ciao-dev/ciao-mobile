@@ -41,6 +41,7 @@ public class ProxyUsage {
 
         json.put("MainProxy", HttpProxyAddr+":"+HttpProxyPort);
         json.put("MainHttpsProxy", HttpsProxyAddr+":"+HttpsProxyPort);
+        json.put("Version", Util.getSelfVersionName(context));
 
         // Ads blocking
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);

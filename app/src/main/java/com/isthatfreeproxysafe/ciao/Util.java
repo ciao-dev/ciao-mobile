@@ -42,6 +42,7 @@ import android.util.Log;
 import android.util.TypedValue;
 
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -181,7 +182,7 @@ public class Util {
             return true;
     }
 
-    public static List<String> getDefaultDNS(Context context) {
+    public static List<String> getDefaultDNS(Context context, boolean onlyipv4) {
         String dns1 = null;
         String dns2 = null;
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
@@ -192,9 +193,9 @@ public class Util {
                 if (lp != null) {
                     List<InetAddress> dns = lp.getDnsServers();
                     if (dns != null) {
-                        if (dns.size() > 0)
+                        if (dns.size() > 0 && (onlyipv4 && dns.get(0) instanceof Inet4Address))
                             dns1 = dns.get(0).getHostAddress();
-                        if (dns.size() > 1)
+                        if (dns.size() > 1 && (onlyipv4 && dns.get(1) instanceof Inet4Address))
                             dns2 = dns.get(1).getHostAddress();
                         for (InetAddress d : dns)
                             Log.i(TAG, "DNS from LP: " + d.getHostAddress());

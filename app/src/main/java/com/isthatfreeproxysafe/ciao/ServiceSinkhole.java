@@ -606,11 +606,11 @@ public class ServiceSinkhole extends VpnService implements SharedPreferences.OnS
     }
     public static List<InetAddress> getDns(Context context) {
         List<InetAddress> listDns = new ArrayList<>();
-        List<String> sysDns = Util.getDefaultDNS(context);
+        List<String> sysDns = Util.getDefaultDNS(context, true);
 
         // Get custom DNS servers
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean ip6 = prefs.getBoolean("ip6", true);
+        boolean ip6 = prefs.getBoolean("ip6", false);
         String vpnDns1 = prefs.getString("dns", null);
         String vpnDns2 = prefs.getString("dns2", null);
         Log.i(TAG, "DNS system=" + TextUtils.join(",", sysDns) + " VPN1=" + vpnDns1 + " VPN2=" + vpnDns2);

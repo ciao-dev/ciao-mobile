@@ -9,7 +9,7 @@ android {
         versionName = "1.1.0"
         minSdkVersion 22
         targetSdkVersion 28
-        versionCode = 190719
+        versionCode = 2019071901
         archivesBaseName = "Ciao-v$versionName"
 
         externalNativeBuild {
